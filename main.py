@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
+
 
 #additional downloads
 #nltk.download('stopwords')
@@ -33,6 +36,12 @@ if __name__ == '__main__':
     print(data.head())
     print("shape of the data frame ", data.shape)
     print("does it contains missing values?\n", data.isna().any(), "\n_______")
-    nlp_cleaning(data)
-    print(data.head())
+    plt.figure(figsize=(10, 10))
+    g = sns.countplot(x="genre", data=data)
+    plt.xticks(rotation=45)
+    fig = g.get_figure()
+    fig.savefig("wykres1.png")
+    plt.show()
+    # nlp_cleaning(data)
+    # print(data.head())
 
