@@ -11,10 +11,13 @@ from collections import Counter
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
 
 
 # additional downloads
@@ -78,11 +81,11 @@ def words_dict_by_genre(data):
         print(key + ": " + str(dict[key].most_common(10)))
 
 
-def fit(X_train, X_test, y_train, y_test):
+def fit(X_train, X_test, y_train, y_test, old_labels):
     ans = []
-    models = [KNeighborsClassifier(), LogisticRegression()]
+    models = [KNeighborsClassifier(), LogisticRegression(), MultinomialNB(), SVC()]
     for model in models:
-        # model = OneVsRestClassifier(model)
+        model = OneVsRestClassifier(model)
         start = time.process_time()
         model.fit(X_train, y_train)
         pred = model.predict(X_test)
@@ -90,6 +93,21 @@ def fit(X_train, X_test, y_train, y_test):
         ac = accuracy_score(pred, y_test)
         f1 = f1_score(pred, y_test, average="macro")
         ans.append([type(model).__name__, ac, f1, (fin-start)*1000])
+
+        cfm = confusion_matrix(y_test, pred)
+        plt.figure(figsize=(10, 10))
+        fig = sns.heatmap(cfm, annot=True, cmap='Greens')
+        fig.set_title(model)
+        fig.set_xlabel("Predicted")
+        fig.set_ylabel("Real")
+        plt.xticks(rotation=45)
+        plt.yticks(rotation=45)
+        fig.xaxis.set_ticklabels(old_labels)
+        fig.yaxis.set_ticklabels(old_labels)
+        fig = fig.get_figure()
+        fig.savefig(str(model) + ".png")
+        plt.show()
+
     df = pd.DataFrame(ans, columns=["model", "accuracy", "F1 score", "time ms"])
     return df
 
@@ -103,13 +121,15 @@ if __name__ == '__main__':
     # nlp_cleaning(data)
     # words_dict_by_genre(data)
     # print(data.head())
-    data["genre"] = LabelEncoder().fit_transform(data["genre"])
+    encoder = LabelEncoder()
+    data["genre"] = encoder.fit_transform(data["genre"])
+    old_labels = dict(zip(encoder.classes_, range(len(encoder.classes_))))
     X_data = CountVectorizer().fit_transform(data["clean"])
     X_train, X_test, y_train, y_test = train_test_split(X_data, data["genre"], test_size=0.25, random_state=79)
     print(y_test)
     genre_distribution = Counter(y_test)
     print(genre_distribution)
 
-    df = fit(X_train, X_test, y_train, y_test)
-    print(df)
+    df = fit(X_train, X_test, y_train, y_test, old_labels)
+    # print(df)
 
