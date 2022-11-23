@@ -48,11 +48,11 @@ def nlp_cleaning(data):
 
 
 def string_to_list(s):
-    s = s[1:len(s)-1]
+    s = s[1:len(s) - 1]
     tmp = s.split()
     ans = []
     for label in tmp:
-        ans.append(label[1:len(label)-2])
+        ans.append(label[1:len(label) - 2])
     return ans
 
 
@@ -75,13 +75,14 @@ def graph(data):
     fig.savefig("wykres1.png")
     plt.show()
 
+
 def words_dict_by_genre(data):
     dict = sum_counter(data)
     for key in dict.keys():
         print(key + ": " + str(dict[key].most_common(10)))
 
 
-def fit(X_train, X_test, y_train, y_test, old_labels):
+def fit(X_train, X_test, y_train, y_test, old_labels, dist):
     ans = []
     models = [KNeighborsClassifier(), LogisticRegression(), MultinomialNB(), SVC()]
     for model in models:
@@ -92,12 +93,14 @@ def fit(X_train, X_test, y_train, y_test, old_labels):
         fin = time.process_time()
         ac = accuracy_score(pred, y_test)
         f1 = f1_score(pred, y_test, average="macro")
-        ans.append([type(model).__name__, ac, f1, (fin-start)*1000])
+
+        ans.append([str(model), ac, f1, (fin - start) * 1000])
 
         cfm = confusion_matrix(y_test, pred)
+
         plt.figure(figsize=(10, 10))
-        fig = sns.heatmap(cfm, annot=True, cmap='Greens')
-        fig.set_title(model)
+        fig = sns.heatmap(cfm / cfm.sum(axis=1)[:, None] * 100, annot=True, cmap='Greens', vmax=100)
+        fig.set_title(str(model) + "[%]")
         fig.set_xlabel("Predicted")
         fig.set_ylabel("Real")
         plt.xticks(rotation=45)
@@ -113,12 +116,13 @@ def fit(X_train, X_test, y_train, y_test, old_labels):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv("out.csv", index_col=0)
+    data = pd.read_csv("data.csv", index_col=0)
     print(data.head())
     print("shape of the data frame ", data.shape)
     print("does it contains missing values?\n", data.isna().any(), "\n_______")
-    # graph(data)
+    graph(data)
     # nlp_cleaning(data)
+    data = pd.read_csv("out.csv")
     # words_dict_by_genre(data)
     # print(data.head())
     encoder = LabelEncoder()
@@ -126,10 +130,9 @@ if __name__ == '__main__':
     old_labels = dict(zip(encoder.classes_, range(len(encoder.classes_))))
     X_data = CountVectorizer().fit_transform(data["clean"])
     X_train, X_test, y_train, y_test = train_test_split(X_data, data["genre"], test_size=0.25, random_state=79)
-    print(y_test)
-    genre_distribution = Counter(y_test)
-    print(genre_distribution)
+    dist = Counter(y_test)
+    genre_distribution = np.array([dist[i] for i in range(len(dist))])
+    print(dist)
 
-    df = fit(X_train, X_test, y_train, y_test, old_labels)
-    # print(df)
-
+    df = fit(X_train, X_test, y_train, y_test, old_labels, genre_distribution)
+    print(df)
