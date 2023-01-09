@@ -27,7 +27,7 @@ from sklearn.svm import SVC
 # nltk.download('omw-1.4')
 
 
-def nlp_cleaning(data):
+def nlp_cleaning(data, output_filename):
     english_stops = set(stopwords.words("english"))
     wl = WordNetLemmatizer()
     new_col_stems = []
@@ -44,7 +44,7 @@ def nlp_cleaning(data):
         new_col_stems.append(stems)
     data["clean"] = new_col_stems
     data["word_dictionary"] = new_col_dicts
-    data.to_csv('out.csv')
+    data.to_csv(output_filename)
 
 
 def string_to_list(s):
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     print("shape of the data frame ", data.shape)
     print("does it contains missing values?\n", data.isna().any(), "\n_______")
     graph(data)
-    # nlp_cleaning(data)
+    # nlp_cleaning(data, "out.csv")
     data = pd.read_csv("out.csv")
     # words_dict_by_genre(data)
     # print(data.head())
