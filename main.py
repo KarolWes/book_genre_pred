@@ -82,7 +82,7 @@ def words_dict_by_genre(data):
         print(key + ": " + str(dict[key].most_common(10)))
 
 
-def fit(X_train, X_test, y_train, y_test, old_labels, dist):
+def fit(X_train, X_test, y_train, y_test, old_labels):
     ans = []
     models = [KNeighborsClassifier(), LogisticRegression(), MultinomialNB(), SVC()]
     for model in models:
@@ -115,6 +115,38 @@ def fit(X_train, X_test, y_train, y_test, old_labels, dist):
     return df
 
 
+def fit_best(X_train, X_test, y_train, y_test, old_labels):
+    ans = []
+    for c in range(1,11):
+        model = OneVsRestClassifier(LogisticRegression(C=c/10))
+        start = time.process_time()
+        model.fit(X_train, y_train)
+        pred = model.predict(X_test)
+        fin = time.process_time()
+        ac = accuracy_score(pred, y_test)
+        f1 = f1_score(pred, y_test, average="macro")
+
+        ans.append([c, ac, f1, (fin - start) * 1000])
+
+        cfm = confusion_matrix(y_test, pred)
+
+        plt.figure(figsize=(10, 10))
+        fig = sns.heatmap(cfm / cfm.sum(axis=1)[:, None] * 100, annot=True, cmap='Greens', vmax=100)
+        fig.set_title("Logistic Regression (c = " + str(c) + ") [%]")
+        fig.set_xlabel("Predicted")
+        fig.set_ylabel("Real")
+        plt.xticks(rotation=45)
+        plt.yticks(rotation=45)
+        fig.xaxis.set_ticklabels(old_labels)
+        fig.yaxis.set_ticklabels(old_labels)
+        fig = fig.get_figure()
+        fig.savefig(str(model) + ".png")
+        plt.show()
+
+    df = pd.DataFrame(ans, columns=["c", "accuracy", "F1 score", "time ms"])
+    return df
+
+
 if __name__ == '__main__':
     data = pd.read_csv("data.csv", index_col=0)
     print(data.head())
@@ -134,5 +166,5 @@ if __name__ == '__main__':
     genre_distribution = np.array([dist[i] for i in range(len(dist))])
     print(dist)
 
-    df = fit(X_train, X_test, y_train, y_test, old_labels, genre_distribution)
+    df = fit(X_train, X_test, y_train, y_test, old_labels)
     print(df)
