@@ -85,7 +85,8 @@ def words_dict_by_genre(data):
 def fit(X_train, X_test, y_train, y_test, old_labels):
     ans = []
     models = [KNeighborsClassifier(), LogisticRegression(), MultinomialNB(), SVC()]
-    for model in models:
+    graph, axes = plt.subplots(len(models)//2, 2, figsize=(18,10))
+    for i, model in enumerate(models):
         model = OneVsRestClassifier(model)
         start = time.process_time()
         model.fit(X_train, y_train)
@@ -109,9 +110,13 @@ def fit(X_train, X_test, y_train, y_test, old_labels):
         fig.yaxis.set_ticklabels(old_labels)
         fig = fig.get_figure()
         fig.savefig(str(model) + ".png")
-        plt.show()
+        fig = sns.heatmap(cfm / cfm.sum(axis=1)[:, None] * 100, ax=axes[i//2, i%2], annot=True, cmap='Greens', vmax=100)
+        fig.tick_params(labelrotation=45)
+        fig.xaxis.set_ticklabels(old_labels)
+        fig.yaxis.set_ticklabels(old_labels)
 
     df = pd.DataFrame(ans, columns=["model", "accuracy", "F1 score", "time ms"])
+    graph.savefig("grid.png")
     return df
 
 
