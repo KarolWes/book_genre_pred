@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from imblearn.over_sampling import RandomOverSampler
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
 
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -31,7 +32,6 @@ def nlp_cleaning(data, output_filename):
     english_stops = set(stopwords.words("english"))
     wl = WordNetLemmatizer()
     new_col_stems = []
-    new_col_dicts = []
     for summary in data["summary"]:
         print(".", end="")
         tokens = word_tokenize(summary.lower())  # split into tokens
@@ -39,11 +39,8 @@ def nlp_cleaning(data, output_filename):
         no_stops = [token for token in letters_only if token not in english_stops]  # remove stop words
         stems = [wl.lemmatize(token) for token in no_stops]  # remove plural forms
         stems = [wl.lemmatize(token, 'v') for token in stems]  # change verbs to base form
-        word_dict = Counter(stems)
-        new_col_dicts.append(word_dict)
         new_col_stems.append(stems)
     data["clean"] = new_col_stems
-    data["word_dictionary"] = new_col_dicts
     data.to_csv(output_filename)
 
 
@@ -148,7 +145,9 @@ if __name__ == '__main__':
     encoder = LabelEncoder()
     data["genre"] = encoder.fit_transform(data["genre"])
     old_labels = dict(zip(encoder.classes_, range(len(encoder.classes_))))
+    # X_data = TfidfVectorizer(max_df=0.95).fit_transform(data["clean"])
     X_data = CountVectorizer().fit_transform(data["clean"])
+    X_resampled, y_resampled = RandomOverSampler(random_state=119).fit_resample(X_data, data["genre"])
     # X_train, X_test, y_train, y_test = train_test_split(X_data, data["genre"], test_size=0.25, random_state=79)
     # dist = Counter(y_test)
     # genre_distribution = np.array([dist[i] for i in range(len(dist))])
