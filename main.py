@@ -69,7 +69,7 @@ def graph(data):
     g = sns.countplot(x="genre", data=data)
     plt.xticks(rotation=45)
     fig = g.get_figure()
-    fig.savefig("wykres1.png")
+    fig.savefig("distribution.png")
     plt.show()
 
 
@@ -92,9 +92,11 @@ def fit_best(X_train, X_test, y_train, y_test, c):
 def fit(X_train, X_test, y_train, y_test, old_labels, classifier):
     ans = []
     models = [KNeighborsClassifier(), LogisticRegression(), MultinomialNB(), SVC()]
+    name = str(classifier).split('.')[-1][:-2]
     graph, axes = plt.subplots(len(models) // 2, 2, figsize=(18, 12))
-    graph.suptitle(str(classifier).split('.')[-1][:-2], size=24)
+    graph.suptitle(name, size=24)
     graph.tight_layout(pad=5.0)
+
     for i, model in enumerate(models):
         model = classifier(model)
         start = time.process_time()
@@ -128,11 +130,14 @@ def fit(X_train, X_test, y_train, y_test, old_labels, classifier):
         fig.title.set_text(title)
 
     df = pd.DataFrame(ans, columns=["model", "accuracy", "F1 score", "time ms"])
-    graph.savefig("grid_ovo.png")
+    graph.savefig(name+".png")
     return df
 
 
 if __name__ == '__main__':
+    # This function was used mostly for tests, therefore it is quite messy.
+    # For a proper evaluation I used the version in notebook
+
     # data = pd.read_csv("data.csv", index_col=0)
     # print(data.head())
     # print("shape of the data frame ", data.shape)
