@@ -1,6 +1,5 @@
 import time
 
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -69,7 +68,7 @@ def graph(data):
     g = sns.countplot(x="genre", data=data)
     plt.xticks(rotation=45)
     fig = g.get_figure()
-    fig.savefig("distribution.png")
+    fig.savefig("figs/distribution.png")
     plt.show()
 
 
@@ -120,7 +119,7 @@ def fit(X_train, X_test, y_train, y_test, old_labels, classifier):
         fig.xaxis.set_ticklabels(old_labels)
         fig.yaxis.set_ticklabels(old_labels)
         fig = fig.get_figure()
-        fig.savefig(str(model) + ".png")
+        fig.savefig("figs/" + str(model) + ".png")
         fig = sns.heatmap(cfm / cfm.sum(axis=1)[:, None] * 100, ax=axes[i // 2, i % 2], annot=True, cmap='Greens',
                           vmax=100)
         fig.tick_params(labelrotation=45)
@@ -130,7 +129,7 @@ def fit(X_train, X_test, y_train, y_test, old_labels, classifier):
         fig.title.set_text(title)
 
     df = pd.DataFrame(ans, columns=["model", "accuracy", "F1 score", "time ms"])
-    graph.savefig(name+".png")
+    graph.savefig("figs/" + name+".png")
     return df
 
 
@@ -138,13 +137,13 @@ if __name__ == '__main__':
     # This function was used mostly for tests, therefore it is quite messy.
     # For a proper evaluation I used the version in notebook
 
-    # data = pd.read_csv("data.csv", index_col=0)
+    # data = pd.read_csv("data/data.csv", index_col=0)
     # print(data.head())
     # print("shape of the data frame ", data.shape)
     # print("does it contains missing values?\n", data.isna().any(), "\n_______")
     # graph(data)
-    # nlp_cleaning(data, "out.csv")
-    data = pd.read_csv("out.csv")
+    # nlp_cleaning(data, "data/out.csv")
+    data = pd.read_csv("data/out.csv")
     # words_dict_by_genre(data)
     # print(data.head())
     encoder = LabelEncoder()
